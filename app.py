@@ -20,6 +20,7 @@ nltk.download('stopwords')
 nltk.download('punkt')
 nltk.download('wordnet')
 
+stop_words = set(stopwords.words('english'))
 
 def preprocess_text(text):
     if isinstance(text, str):
