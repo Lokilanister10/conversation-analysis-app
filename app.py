@@ -1,4 +1,3 @@
-# Import necessary libraries
 import streamlit as st
 import pandas as pd
 import re
@@ -11,22 +10,18 @@ import nltk
 import json
 import os
 
-# Set environment variables to control the number of threads used by OpenMP
 os.environ['OMP_NUM_THREADS'] = '1'
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 os.environ['MKL_NUM_THREADS'] = '1'
 os.environ['VECLIB_MAXIMUM_THREADS'] = '1'
 os.environ['NUMEXPR_NUM_THREADS'] = '1'
 
-# Download NLTK data files
 nltk.download('stopwords')
 nltk.download('punkt')
 nltk.download('wordnet')
 
-# Ensure stopwords are loaded
 stop_words = set(stopwords.words('english'))
 
-# Preprocess the text
 def preprocess_text(text):
     if isinstance(text, str):
         text = re.sub(r'\s+', ' ', text)  # Remove extra spaces
@@ -39,13 +34,11 @@ def preprocess_text(text):
     else:
         return ""
 
-# Extract conversation texts
 def extract_conversation_text(conversation):
     if isinstance(conversation, list):
         return ' '.join([msg['value'] for msg in conversation if isinstance(msg, dict) and 'value' in msg])
     return ""
 
-# Assign topics based on clusters
 def assign_topic(cluster):
     topic_dict = {
         0: 'Programming Practices',
@@ -61,7 +54,6 @@ def assign_topic(cluster):
     }
     return topic_dict.get(cluster, 'Misc')
 
-# Keyword-based Sentiment Analysis
 positive_keywords = ['good', 'great', 'excellent', 'amazing', 'fantastic', 'positive', 'love', 'like']
 negative_keywords = ['bad', 'terrible', 'horrible', 'poor', 'negative', 'hate', 'dislike']
 neutral_keywords = ['okay', 'fine', 'neutral', 'average']
@@ -75,14 +67,12 @@ def keyword_based_sentiment(text):
     else:
         return 'neutral'
 
-# Streamlit Web App
 def main():
     st.title("Conversation Analysis")
 
     uploaded_file = st.file_uploader("Upload a JSON Lines (.jsonl) file", type="jsonl")
     if uploaded_file is not None:
         try:
-            # Read the JSON Lines file
             data = []
             for line in uploaded_file:
                 data.append(json.loads(line.decode('utf-8')))
@@ -90,25 +80,20 @@ def main():
 
             if st.button('Start Analysis'):
                 with st.spinner('Processing...'):
-                    # Extract and preprocess conversation texts
                     df['conversation_text'] = df['conversations'].apply(extract_conversation_text)
                     df['preprocessed'] = df['conversation_text'].apply(preprocess_text)
                     df = df[df['preprocessed'].str.strip() != ""]
 
-                    # Vectorize the preprocessed text
                     vectorizer = TfidfVectorizer(max_features=1000)
                     X = vectorizer.fit_transform(df['preprocessed'])
 
-                    # Clustering with K-means
                     num_clusters = 10  # Number of clusters
                     kmeans = KMeans(n_clusters=num_clusters, random_state=42, n_init=10)
                     df['cluster'] = kmeans.fit_predict(X)
                     df['topic'] = df['cluster'].apply(assign_topic)
 
-                    # Sentiment Analysis
                     df['user_sentiment'] = df['conversation_text'].apply(keyword_based_sentiment)
 
-                # Screen 1: Counts
                 st.header("Counts")
                 st.subheader("Topic Counts")
                 topic_counts = df['topic'].value_counts().reset_index()
@@ -120,7 +105,6 @@ def main():
                 sentiment_counts.columns = ['Sentiment', 'Count']
                 st.table(sentiment_counts)
 
-                # Screen 2: Sessions
                 st.header("Sessions")
                 paginated_data = df[['conversation_text', 'topic', 'user_sentiment']]
                 paginated_data.reset_index(inplace=True)
