@@ -1,14 +1,16 @@
 import streamlit as st
 import pandas as pd
 import re
+import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cluster import KMeans
-import nltk
 import json
 import os
+
+nltk.download()
 
 os.environ['OMP_NUM_THREADS'] = '1'
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
@@ -24,12 +26,12 @@ stop_words = set(stopwords.words('english'))
 
 def preprocess_text(text):
     if isinstance(text, str):
-        text = re.sub(r'\s+', ' ', text)  # Remove extra spaces
-        text = re.sub(r'[^\w\s]', '', text.lower())  # Remove punctuation and lowercase
-        tokens = word_tokenize(text)  # Tokenize
-        tokens = [t for t in tokens if t not in stop_words]  # Remove stopwords
+        text = re.sub(r'\s+', ' ', text)
+        text = re.sub(r'[^\w\s]', '', text.lower())
+        tokens = word_tokenize(text)
+        tokens = [t for t in tokens if t not in stop_words]
         lemmatizer = WordNetLemmatizer()
-        tokens = [lemmatizer.lemmatize(t) for t in tokens]  # Lemmatize
+        tokens = [lemmatizer.lemmatize(t) for t in tokens]
         return ' '.join(tokens)
     else:
         return ""
@@ -87,7 +89,7 @@ def main():
                     vectorizer = TfidfVectorizer(max_features=1000)
                     X = vectorizer.fit_transform(df['preprocessed'])
 
-                    num_clusters = 10  # Number of clusters
+                    num_clusters = 10
                     kmeans = KMeans(n_clusters=num_clusters, random_state=42, n_init=10)
                     df['cluster'] = kmeans.fit_predict(X)
                     df['topic'] = df['cluster'].apply(assign_topic)
