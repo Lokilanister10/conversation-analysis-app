@@ -10,8 +10,6 @@ from sklearn.cluster import KMeans
 import json
 import os
 
-nltk.download()
-
 os.environ['OMP_NUM_THREADS'] = '1'
 os.environ['OPENBLAS_NUM_THREADS'] = '1'
 os.environ['MKL_NUM_THREADS'] = '1'
